@@ -47,11 +47,27 @@ use crate::{
 /// Set max write length for testing
 const MAX_WRITE_LENGTH: usize = 1024 * 40;
 
-/// Set timer period in ms
-const TIMER_PERIOD: u32 = 1000 * 10;
+/// Number of milliseconds in one second.
+const MS_PER_SECOND: u32 = 1000;
 
-/// Non-zero char literal (of one to four chars) for pool tag used in ExAllocatePool2
+/// Watchdog timer period, in seconds.
+const TIMER_PERIOD_SECONDS: u32 = 10;
+
+/// Timer period in ms
+const TIMER_PERIOD: u32 = TIMER_PERIOD_SECONDS * MS_PER_SECOND;
+
+/// Non-zero char literal (of one to four chars) for pool tag used in
+/// `ExAllocatePool2`
 const MEMORY_TAG: u32 = u32::from_be_bytes(*b"sam1");
+
+/// Initial cancel/completion ownership count assigned to a new request. A
+/// claimant takes ownership by decrementing the count down to zero.
+const INITIAL_CANCEL_OWNERSHIP_COUNT: i32 = 1;
+
+/// Total ownership count held by the timer DPC once it has claimed completion
+/// of a request: the initial count plus the single increment it acquired via
+/// `echo_increment_request_cancel_ownership_count`.
+const TIMER_CLAIMED_OWNERSHIP_COUNT: i32 = INITIAL_CANCEL_OWNERSHIP_COUNT + 1;
 
 /// This routine will interlock increment a value only if the current value
 /// is greater then the floor value.
@@ -359,7 +375,8 @@ fn echo_set_current_request(request: WDFREQUEST, queue: WDFQUEUE) {
     // they will interlock decrement the count.  When the count reaches zero,
     // ownership has been acquired and the caller may complete the request.
     unsafe {
-        (*request_context).cancel_completion_ownership_count = AtomicI32::new(1);
+        (*request_context).cancel_completion_ownership_count =
+            AtomicI32::new(INITIAL_CANCEL_OWNERSHIP_COUNT);
     }
 
     // Defer the completion to another thread from the timer dpc
@@ -699,12 +716,12 @@ unsafe extern "C" fn echo_evt_timer_func(timer: WDFTIMER) {
             // currently racing with it), there is no need to use an interlocked
             // decrement to lower the cancel ownership count.
 
-            // 2 is the initial count we set when we initialized
-            // CancelCompletionOwnershipCount plus the call to
+            // TIMER_CLAIMED_OWNERSHIP_COUNT is the initial count we set when we
+            // initialized CancelCompletionOwnershipCount plus the call to
             // EchoIncrementRequestCancelOwnershipCount()
             (*request_context)
                 .cancel_completion_ownership_count
-                .fetch_sub(2, Ordering::SeqCst);
+                .fetch_sub(TIMER_CLAIMED_OWNERSHIP_COUNT, Ordering::SeqCst);
             complete_request = true;
         }
     }

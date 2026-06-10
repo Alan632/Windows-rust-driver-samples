@@ -30,8 +30,18 @@ use crate::{
     WDF_REQUEST_CONTEXT_TYPE_INFO,
 };
 
-/// 100ms relative time (in nanoseconds units)
-const WDF_REL_TIMEOUT_IN_MS: i64 = -(100) * (10000);
+/// Number of 100-nanosecond intervals in one millisecond. WDF relative times
+/// are expressed in 100-nanosecond units, so this converts a millisecond delay
+/// into the units WDF expects.
+const RELATIVE_100_NS_INTERVALS_PER_MS: i64 = 10_000;
+
+/// Delay, in milliseconds, before the periodic timer first fires once the
+/// device has started.
+const START_TIMER_DUE_TIME_MS: i64 = 100;
+
+/// 100ms relative time (in 100-nanosecond units). The negative sign marks the
+/// value as a relative (rather than absolute) timeout.
+const WDF_REL_TIMEOUT_IN_MS: i64 = -START_TIMER_DUE_TIME_MS * RELATIVE_100_NS_INTERVALS_PER_MS;
 
 /// Worker routine called to create a device and its software resources.
 ///
