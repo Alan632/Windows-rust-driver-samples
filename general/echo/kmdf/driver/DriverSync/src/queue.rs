@@ -44,8 +44,11 @@ use crate::{
     WDF_TIMER_CONFIG_SIZE,
 };
 
-/// Set max write length for testing
-const MAX_WRITE_LENGTH: usize = 1024 * 40;
+/// Number of bytes in one kilobyte.
+const BYTES_PER_KB: usize = 1024;
+
+/// Max write length, in bytes, for testing
+const MAX_WRITE_LENGTH: usize = 40 * BYTES_PER_KB;
 
 /// Number of milliseconds in one second.
 const MS_PER_SECOND: u32 = 1000;
