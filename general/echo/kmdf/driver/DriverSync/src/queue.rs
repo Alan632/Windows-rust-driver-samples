@@ -50,6 +50,9 @@ const MAX_WRITE_LENGTH: usize = 1024 * 40;
 /// Set timer period in ms
 const TIMER_PERIOD: u32 = 1000 * 10;
 
+/// Non-zero char literal (of one to four chars) for pool tag used in ExAllocatePool2
+const MEMORY_TAG: u32 = u32::from_be_bytes(*b"sam1");
+
 /// This routine will interlock increment a value only if the current value
 /// is greater then the floor value.
 ///
@@ -564,9 +567,8 @@ extern "C" fn echo_evt_io_write(queue: WDFQUEUE, request: WDFREQUEST, length: us
             (*queue_context).length = 0;
         }
 
-        // FIXME: Memory Tag
         (*queue_context).buffer =
-            ExAllocatePool2(POOL_FLAG_NON_PAGED, length as SIZE_T, 's' as u32);
+            ExAllocatePool2(POOL_FLAG_NON_PAGED, length as SIZE_T, MEMORY_TAG);
         if (*queue_context).buffer.is_null() {
             println!(
                 "echo_evt_io_write Could not allocate {:?} byte buffer",

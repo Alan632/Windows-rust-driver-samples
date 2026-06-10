@@ -30,6 +30,9 @@ use crate::{
     WDF_REQUEST_CONTEXT_TYPE_INFO,
 };
 
+/// 100ms relative time (in nanoseconds units)
+const WDF_REL_TIMEOUT_IN_MS: i64 = -(100) * (10000);
+
 /// Worker routine called to create a device and its software resources.
 ///
 /// # Arguments:
@@ -162,7 +165,7 @@ extern "C" fn echo_evt_device_self_managed_io_start(device: WDFDEVICE) -> NTSTAT
     // into low power state.
     unsafe { call_unsafe_wdf_function_binding!(WdfIoQueueStart, queue) };
 
-    let due_time: i64 = -(100) * (10000);
+    let due_time: i64 = WDF_REL_TIMEOUT_IN_MS;
 
     let _ = unsafe { (*queue_context).timer.start(due_time) };
 
