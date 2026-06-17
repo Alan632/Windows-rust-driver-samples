@@ -71,15 +71,15 @@ static WRITER_TYPE: u32 = 2;
 static NUM_ASYNCH_IO: usize = 100;
 static BUFFER_SIZE: usize = 40 * 1024;
 /// Transfer length, in bytes, for the first synchronous write/read test.
-static SYNC_TEST_SMALL_LENGTH: u32 = 512;
+const SYNC_TEST_SMALL_LENGTH: u32 = 512;
 /// Transfer length, in bytes, for the second synchronous write/read test.
-static SYNC_TEST_LARGE_LENGTH: u32 = 30 * 1024;
+const SYNC_TEST_LARGE_LENGTH: u32 = 30 * 1024;
 /// Completion key associated with the device handle on the I/O completion port.
-static COMPLETION_PORT_KEY: usize = 1;
+const COMPLETION_PORT_KEY: usize = 1;
 /// Number of concurrent threads allowed to run for the I/O completion port.
 /// Zero lets the system allow as many concurrent threads as there are
 /// processors.
-static COMPLETION_PORT_CONCURRENT_THREADS: u32 = 0;
+const COMPLETION_PORT_CONCURRENT_THREADS: u32 = 0;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let argument_vector: Vec<String> = env::args().collect();
