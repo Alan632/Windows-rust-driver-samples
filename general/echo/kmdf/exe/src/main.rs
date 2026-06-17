@@ -297,7 +297,8 @@ fn async_io(thread_parameter: u32) -> Result<(), Box<dyn Error + Send + Sync>> {
 // function warning
 #[allow(clippy::too_many_lines)]
 fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
-    /// Completion key associated with the device handle on the I/O completion port.
+    /// Completion key associated with the device handle on the I/O completion
+    /// port.
     const COMPLETION_PORT_KEY: usize = 1;
     /// Number of concurrent threads allowed to run for the I/O completion port.
     /// Zero lets the system allow as many concurrent threads as there are

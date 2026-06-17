@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // License: MIT OR Apache-2.0
 
-use core::sync::atomic::Ordering;
+use core::{sync::atomic::Ordering, time::Duration};
 
 use wdk::{nt_success, paged_code, println, wdf};
 use wdk_sys::{
@@ -43,8 +43,6 @@ use crate::{
     WDF_QUEUE_CONTEXT_TYPE_INFO,
     WDF_TIMER_CONFIG_SIZE,
 };
-
-use core::time::Duration;
 
 /// Initial cancel/completion ownership count assigned to a new request. A
 /// claimant takes ownership by decrementing the count down to zero.
@@ -136,7 +134,20 @@ fn echo_interlocked_increment_gtzero(target: &AtomicI32) -> i32 {
 #[link_section = "PAGE"]
 pub unsafe fn echo_queue_initialize(device: WDFDEVICE) -> NTSTATUS {
     /// Timer period of 10 seconds in ms
-    const TIMER_PERIOD_10_S: u32 = Duration::from_secs(10).as_millis() as u32;
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "10 seconds in millisecond units is known to fit in u32"
+    )]
+    const TIMER_PERIOD_10_S: u32 = {
+        const MILLIS: u128 = Duration::from_secs(10).as_millis();
+        const {
+            assert!(
+                MILLIS <= u32::MAX as u128,
+                "10,000 should fit in u32"
+            );
+        };
+        MILLIS as u32
+    };
 
     paged_code!();
 
