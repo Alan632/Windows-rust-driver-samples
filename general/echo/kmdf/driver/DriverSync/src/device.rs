@@ -30,18 +30,11 @@ use crate::{
     WDF_REQUEST_CONTEXT_TYPE_INFO,
 };
 
-/// Number of 100-nanosecond intervals in one millisecond. WDF relative times
-/// are expressed in 100-nanosecond units, so this converts a millisecond delay
-/// into the units WDF expects.
-const RELATIVE_100_NS_INTERVALS_PER_MS: i64 = 10_000;
-
-/// Delay, in milliseconds, before the periodic timer first fires once the
-/// device has started.
-const START_TIMER_DUE_TIME_MS: i64 = 100;
+use core::time::Duration;
 
 /// 100ms relative time (in 100-nanosecond units). The negative sign marks the
 /// value as a relative (rather than absolute) timeout.
-const WDF_REL_TIMEOUT_IN_MS: i64 = -START_TIMER_DUE_TIME_MS * RELATIVE_100_NS_INTERVALS_PER_MS;
+const WDF_REL_TIMEOUT_100_MS: i64 = -( ( Duration::from_millis(100).as_nanos() / 100 ) as i64 );
 
 /// Worker routine called to create a device and its software resources.
 ///
@@ -175,7 +168,7 @@ extern "C" fn echo_evt_device_self_managed_io_start(device: WDFDEVICE) -> NTSTAT
     // into low power state.
     unsafe { call_unsafe_wdf_function_binding!(WdfIoQueueStart, queue) };
 
-    let due_time: i64 = WDF_REL_TIMEOUT_IN_MS;
+    let due_time: i64 = WDF_REL_TIMEOUT_100_MS;
 
     let _ = unsafe { (*queue_context).timer.start(due_time) };
 
