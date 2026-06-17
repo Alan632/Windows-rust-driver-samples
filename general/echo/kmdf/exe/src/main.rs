@@ -70,18 +70,13 @@ static READER_TYPE: u32 = 1;
 static WRITER_TYPE: u32 = 2;
 static NUM_ASYNCH_IO: usize = 100;
 static BUFFER_SIZE: usize = 40 * 1024;
-/// Transfer length, in bytes, for the first synchronous write/read test.
-const SYNC_TEST_SMALL_LENGTH: u32 = 512;
-/// Transfer length, in bytes, for the second synchronous write/read test.
-const SYNC_TEST_LARGE_LENGTH: u32 = 30 * 1024;
-/// Completion key associated with the device handle on the I/O completion port.
-const COMPLETION_PORT_KEY: usize = 1;
-/// Number of concurrent threads allowed to run for the I/O completion port.
-/// Zero lets the system allow as many concurrent threads as there are
-/// processors.
-const COMPLETION_PORT_CONCURRENT_THREADS: u32 = 0;
 
 fn main() -> Result<(), Box<dyn Error>> {
+    /// Transfer length, in bytes, for the first synchronous write/read test.
+    const SYNC_TEST_SMALL_LENGTH: u32 = 512;
+    /// Transfer length, in bytes, for the second synchronous write/read test.
+    const SYNC_TEST_LARGE_LENGTH: u32 = 30 * 1024;
+
     let argument_vector: Vec<String> = env::args().collect();
     let argument_count = argument_vector.len();
 
@@ -302,6 +297,13 @@ fn async_io(thread_parameter: u32) -> Result<(), Box<dyn Error + Send + Sync>> {
 // function warning
 #[allow(clippy::too_many_lines)]
 fn async_io_work(io_type: u32) -> Result<(), Box<dyn Error>> {
+    /// Completion key associated with the device handle on the I/O completion port.
+    const COMPLETION_PORT_KEY: usize = 1;
+    /// Number of concurrent threads allowed to run for the I/O completion port.
+    /// Zero lets the system allow as many concurrent threads as there are
+    /// processors.
+    const COMPLETION_PORT_CONCURRENT_THREADS: u32 = 0;
+
     let globals = GLOBAL_DATA.read()?;
 
     let h_device: HANDLE;

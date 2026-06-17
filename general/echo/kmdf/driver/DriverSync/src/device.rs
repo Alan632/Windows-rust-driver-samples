@@ -32,10 +32,6 @@ use crate::{
 
 use core::time::Duration;
 
-/// 100ms relative time (in 100-nanosecond units). The negative sign marks the
-/// value as a relative (rather than absolute) timeout.
-const WDF_REL_TIMEOUT_100_MS: i64 = -( ( Duration::from_millis(100).as_nanos() / 100 ) as i64 );
-
 /// Worker routine called to create a device and its software resources.
 ///
 /// # Arguments:
@@ -152,6 +148,10 @@ pub fn echo_device_create(mut device_init: &mut WDFDEVICE_INIT) -> NTSTATUS {
 ///
 /// * `NTSTATUS` - Failures will result in the device stack being torn down.
 extern "C" fn echo_evt_device_self_managed_io_start(device: WDFDEVICE) -> NTSTATUS {
+    /// 100ms relative time (in 100-nanosecond units). The negative sign marks the
+    /// value as a relative (rather than absolute) timeout.
+    const WDF_REL_TIMEOUT_100_MS: i64 = -( ( Duration::from_millis(100).as_nanos() / 100 ) as i64 );
+
     // Restart the queue and the periodic timer. We stopped them before going
     // into low power state.
     let queue: WDFQUEUE;

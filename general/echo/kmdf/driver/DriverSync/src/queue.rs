@@ -44,24 +44,7 @@ use crate::{
     WDF_TIMER_CONFIG_SIZE,
 };
 
-/// Number of bytes in one kilobyte.
-const BYTES_PER_KB: usize = 1024;
-
-/// Max write length, in bytes, for testing
-const MAX_WRITE_LENGTH: usize = 40 * BYTES_PER_KB;
-
-/// Number of milliseconds in one second.
-const MS_PER_SECOND: u32 = 1000;
-
-/// Watchdog timer period, in seconds.
-const TIMER_PERIOD_SECONDS: u32 = 10;
-
-/// Timer period in ms
-const TIMER_PERIOD: u32 = TIMER_PERIOD_SECONDS * MS_PER_SECOND;
-
-/// Non-zero char literal (of one to four chars) for pool tag used in
-/// `ExAllocatePool2`
-const MEMORY_TAG: u32 = u32::from_be_bytes(*b"sam1");
+use core::time::Duration;
 
 /// Initial cancel/completion ownership count assigned to a new request. A
 /// claimant takes ownership by decrementing the count down to zero.
@@ -152,6 +135,9 @@ fn echo_interlocked_increment_gtzero(target: &AtomicI32) -> i32 {
 /// * `NTSTATUS`
 #[link_section = "PAGE"]
 pub unsafe fn echo_queue_initialize(device: WDFDEVICE) -> NTSTATUS {
+    /// Timer period of 10 seconds in ms
+    const TIMER_PERIOD_10_S: u32 = Duration::from_secs(10).as_millis() as u32;
+
     paged_code!();
 
     let mut queue = WDF_NO_HANDLE as WDFQUEUE;
@@ -228,7 +214,7 @@ pub unsafe fn echo_queue_initialize(device: WDFDEVICE) -> NTSTATUS {
     let mut timer_config = WDF_TIMER_CONFIG {
         Size: WDF_TIMER_CONFIG_SIZE,
         EvtTimerFunc: Some(echo_evt_timer_func),
-        Period: TIMER_PERIOD,
+        Period: TIMER_PERIOD_10_S,
         AutomaticSerialization: u8::from(true),
         TolerableDelay: 0,
         ..WDF_TIMER_CONFIG::default()
@@ -541,6 +527,15 @@ extern "C" fn echo_evt_io_read(queue: WDFQUEUE, request: WDFREQUEST, mut length:
 ///
 /// * `VOID`
 extern "C" fn echo_evt_io_write(queue: WDFQUEUE, request: WDFREQUEST, length: usize) {
+    /// Number of bytes in one kilobyte.
+    const BYTES_PER_KB: usize = 1024;
+    /// Max write length, in bytes, for testing
+    const MAX_WRITE_LENGTH: usize = 40 * BYTES_PER_KB;
+
+    /// Non-zero char literal (of one to four chars) for pool tag used in
+    /// `ExAllocatePool2`
+    const MEMORY_TAG: u32 = u32::from_be_bytes(*b"sam1");
+
     let mut memory = WDF_NO_HANDLE as WDFMEMORY;
     let mut status: NTSTATUS;
     let queue_context = unsafe { queue_get_context(queue as WDFOBJECT) };
