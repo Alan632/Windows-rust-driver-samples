@@ -157,10 +157,7 @@ extern "C" fn echo_evt_device_self_managed_io_start(device: WDFDEVICE) -> NTSTAT
     const WDF_REL_TIMEOUT_100_MS: i64 = {
         const UNITS: u128 = Duration::from_millis(100).as_nanos() / 100;
         const {
-            assert!(
-                UNITS <= i64::MAX as u128,
-                "1,000,000 should fit in i64"
-            );
+            assert!(UNITS <= i64::MAX as u128, "1,000,000 should fit in i64");
         };
         -(UNITS as i64)
     };

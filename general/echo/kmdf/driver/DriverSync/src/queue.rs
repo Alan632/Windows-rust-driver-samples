@@ -141,10 +141,7 @@ pub unsafe fn echo_queue_initialize(device: WDFDEVICE) -> NTSTATUS {
     const TIMER_PERIOD_10_S: u32 = {
         const MILLIS: u128 = Duration::from_secs(10).as_millis();
         const {
-            assert!(
-                MILLIS <= u32::MAX as u128,
-                "10,000 should fit in u32"
-            );
+            assert!(MILLIS <= u32::MAX as u128, "10,000 should fit in u32");
         };
         MILLIS as u32
     };
