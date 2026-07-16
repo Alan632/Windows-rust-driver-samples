@@ -213,7 +213,7 @@ pub unsafe fn echo_queue_initialize(device: WDFDEVICE) -> NTSTATUS {
     let mut timer_config = WDF_TIMER_CONFIG {
         Size: WDF_TIMER_CONFIG_SIZE,
         EvtTimerFunc: Some(echo_evt_timer_func),
-        Period: TIMER_PERIOD_MS, // 10 seconds, in milliseconds
+        Period: TIMER_PERIOD_MS,
         AutomaticSerialization: u8::from(true),
         TolerableDelay: 0,
         ..WDF_TIMER_CONFIG::default()
