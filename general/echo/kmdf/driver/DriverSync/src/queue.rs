@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // License: MIT OR Apache-2.0
 
-use core::sync::atomic::Ordering;
+use core::{sync::atomic::Ordering, time::Duration};
 
 use wdk::{nt_success, paged_code, println, wdf};
 use wdk_sys::{
@@ -124,6 +124,19 @@ fn echo_interlocked_increment_gtzero(target: &AtomicI32) -> i32 {
 /// * `NTSTATUS`
 #[link_section = "PAGE"]
 pub unsafe fn echo_queue_initialize(device: WDFDEVICE) -> NTSTATUS {
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "10 seconds in millisecond units is known to fit in u32"
+    )]
+    const TIMER_PERIOD_MS: u32 = {
+        const MILLIS: u128 = Duration::from_secs(10).as_millis();
+        const {
+            assert!(MILLIS <= u32::MAX as u128, "10,000 should fit in u32");
+        };
+
+        MILLIS as u32
+    };
+
     paged_code!();
 
     let mut queue = WDF_NO_HANDLE as WDFQUEUE;
@@ -200,7 +213,7 @@ pub unsafe fn echo_queue_initialize(device: WDFDEVICE) -> NTSTATUS {
     let mut timer_config = WDF_TIMER_CONFIG {
         Size: WDF_TIMER_CONFIG_SIZE,
         EvtTimerFunc: Some(echo_evt_timer_func),
-        Period: 10_000, // 10 seconds, in milliseconds
+        Period: TIMER_PERIOD_MS, // 10 seconds, in milliseconds
         AutomaticSerialization: u8::from(true),
         TolerableDelay: 0,
         ..WDF_TIMER_CONFIG::default()
